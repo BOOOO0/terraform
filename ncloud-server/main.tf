@@ -5,20 +5,22 @@ resource "ncloud_vpc" "ncloud-vpc1" {
 
 # Public Subnet
 resource "ncloud_subnet" "subnet_public" {
-  name        = "ncloud-vpc1-public"
-  vpc_no      = ncloud_vpc.ncloud-vpc1.vpc_no
-  subnet      = cidrsubnet(ncloud_vpc.ncloud-vpc1.ipv4_cidr_block, 8, 0) // "10.0.0.0/24"
-  zone        = "KR-2"
-  subnet_type = "PUBLIC" // PUBLIC(Public)
+  name           = "ncloud-vpc1-public"
+  vpc_no         = ncloud_vpc.ncloud-vpc1.vpc_no
+  subnet         = cidrsubnet(ncloud_vpc.ncloud-vpc1.ipv4_cidr_block, 8, 0) // "10.0.0.0/24"
+  zone           = "KR-2"
+  network_acl_no = ncloud_network_acl.network_acl_public.id
+  subnet_type    = "PUBLIC" // PUBLIC(Public)
 }
 
 # Private Subnet
 resource "ncloud_subnet" "subnet_private" {
-  name        = "ncloud-vpc1-private"
-  vpc_no      = ncloud_vpc.ncloud-vpc1.vpc_no
-  subnet      = cidrsubnet(ncloud_vpc.ncloud-vpc1.ipv4_cidr_block, 8, 1) // "10.0.1.0/24"
-  zone        = "KR-2"
-  subnet_type = "PRIVATE" // PRIVATE(Private)
+  name           = "ncloud-vpc1-private"
+  vpc_no         = ncloud_vpc.ncloud-vpc1.vpc_no
+  subnet         = cidrsubnet(ncloud_vpc.ncloud-vpc1.ipv4_cidr_block, 8, 1) // "10.0.1.0/24"
+  zone           = "KR-2"
+  network_acl_no = ncloud_network_acl.network_acl_private.id
+  subnet_type    = "PRIVATE" // PRIVATE(Private)
 }
 
 # NAT Gateway Subnet
@@ -44,23 +46,34 @@ resource "ncloud_network_acl" "network_acl_public" {
   name   = "ncloud-vpc1-public-acl"
 }
 
+resource "ncloud_network_acl" "network_acl_private" {
+  vpc_no = ncloud_vpc.ncloud-vpc1.id
+  name   = "ncloud-vpc1-private-acl"
+}
+
 # Server
 # for Front-end (bastion) server
 resource "ncloud_server" "frontend-server" {
-  subnet_no                                  = ncloud_subnet.subnet_public.id
-  name                                       = "frontend-server"
-  server_image_product_code                  = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-  server_product_code                        = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-  access_control_group_configuration_no_list = ["117176"]
+  subnet_no                 = ncloud_subnet.subnet_public.id
+  name                      = "frontend-server"
+  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+  server_product_code       = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 }
 # for Back-end (WAS) server
 resource "ncloud_server" "backend-server" {
-  subnet_no                                  = ncloud_subnet.subnet_private.id
-  name                                       = "backend-server"
-  server_image_product_code                  = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
-  server_product_code                        = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
-  access_control_group_configuration_no_list = ["117176"]
+  subnet_no                 = ncloud_subnet.subnet_private.id
+  name                      = "backend-server"
+  server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+  server_product_code       = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
 }
+# # for Jenkins server
+# resource "ncloud_server" "jenkins-server" {
+#   subnet_no                 = ncloud_subnet.subnet_public.id
+#   name                      = "jenkins-server"
+#   server_image_product_code = "SW.VSVR.OS.LNX64.CNTOS.0703.B050"
+#   # server_image_product_code = "SW.VSVR.OS.LNX64.UBNTU.SVR2004.B050"
+#   server_product_code = "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002"
+# }
 
 # NAT Gateway
 resource "ncloud_nat_gateway" "nat-gateway-01" {
@@ -79,3 +92,18 @@ resource "ncloud_route" "nat_route_table" {
   target_no              = ncloud_nat_gateway.nat-gateway-01.id
 }
 
+# # server_image_product_code
+
+# data "ncloud_server_images" "images" {
+#   filter {
+#     name   = "product_name"
+#     values = ["ubuntu-20.04"]
+#   }
+# }
+
+# output "list_image" {
+#   value = {
+#     for image in data.ncloud_server_images.images.server_images :
+#     image.id => image.product_name
+#   }
+# }

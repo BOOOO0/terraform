@@ -4,23 +4,12 @@ locals {
     [1, "TCP", "0.0.0.0/0", "80", "ALLOW"],
     [2, "TCP", "0.0.0.0/0", "443", "ALLOW"],
     [3, "TCP", "${var.client_ip}/32", "22", "ALLOW"],
-    [4, "TCP", "${var.client_ip}/32", "3389", "ALLOW"],
-    [5, "TCP", "0.0.0.0/0", "32768-65535", "ALLOW"],
-    [6, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "8080", "ALLOW"], // Allow 8080 port to private server
-    [7, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "22", "ALLOW"],
-    [197, "TCP", "0.0.0.0/0", "1-65535", "DROP"],
-    [198, "UDP", "0.0.0.0/0", "1-65535", "DROP"],
-    [199, "ICMP", "0.0.0.0/0", null, "DROP"],
+    [4, "TCP", "0.0.0.0/0", "8080", "ALLOW"],
   ]
   public_subnet_outbound = [
     [1, "TCP", "0.0.0.0/0", "80", "ALLOW"],
     [2, "TCP", "0.0.0.0/0", "443", "ALLOW"],
-    [3, "TCP", "0.0.0.0/0", "9001-65535", "ALLOW"],
-    [4, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "8080", "ALLOW"], // Allow 8080 port to private server
-    [5, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "22", "ALLOW"],
-    [197, "TCP", "0.0.0.0/0", "1-65535", "DROP"],
-    [198, "UDP", "0.0.0.0/0", "1-65535", "DROP"],
-    [199, "ICMP", "0.0.0.0/0", null, "DROP"]
+    [3, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "22", "ALLOW"],
   ]
 }
 resource "ncloud_network_acl_rule" "network_acl_rule_public" {
@@ -52,16 +41,9 @@ locals {
     [1, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "8080", "ALLOW"], // Allow 8080 port from public server
     [2, "TCP", "0.0.0.0/0", "32768-65535", "ALLOW"],
     [3, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "22", "ALLOW"],
-    [197, "TCP", "0.0.0.0/0", "1-65535", "DROP"],
-    [198, "UDP", "0.0.0.0/0", "1-65535", "DROP"],
-    [199, "ICMP", "0.0.0.0/0", null, "DROP"],
   ]
   private_subnet_outbound = [
-    [1, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "32768-65535", "ALLOW"], // Allow 32768-65535 port to public server
-    [2, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "22", "ALLOW"],
-    [197, "TCP", "0.0.0.0/0", "1-65535", "DROP"],
-    [198, "UDP", "0.0.0.0/0", "1-65535", "DROP"],
-    [199, "ICMP", "0.0.0.0/0", null, "DROP"]
+    [1, "TCP", "${ncloud_server.frontend-server.network_interface[0].private_ip}/32", "1-65535", "ALLOW"],
   ]
 }
 resource "ncloud_network_acl_rule" "network_acl_private" {
